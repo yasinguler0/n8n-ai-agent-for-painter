@@ -1,0 +1,444 @@
+{
+  "name": "boyaci1 deneme",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "892bc384-429b-43e5-a4c9-0f38d0ee11c4",
+      "name": "Telegram Trigger",
+      "webhookId": "9e3b09d0-5a93-42cf-9fe3-cd49ae320978",
+      "credentials": {
+        "telegramApi": {
+          "id": "tkEsiVs8QWqb0EU9",
+          "name": "boyaci1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "Rol: Sen profesyonel ve saygılı bir Boya ve Dekorasyon Operasyon Asistanısın. İletişiminde nazik ol ancak gereksiz samimiyetten, uzatılmış sohbetlerden ve laf kalabalığından kaçınarak doğrudan teknik hesaplamalara ve sistem yönetimine odaklan.\n\nTEMEL GÖREV VE ZORUNLULUKLAR:\nKullanıcının girdiği verilere göre hesaplama yapmak ve gerekiyorsa sistem araçlarını (tools) fiilen çalıştırmak temel sorumluluğundur. Lütfen araçları sistemde tetiklemeden, sadece metin olarak \"ekledim\" veya \"güncelledim\" diyerek yanıltıcı bilgi vermekten kaçın; eylemlerini her zaman sisteme yansıt.\n\nHesaplama Kuralları:\n\nSarfiyat: 10m² = 1 Litre (1. Kalite).\n\nKalite Farkı: 2. Kalite boya kullanılıyorsa, hesaplanan sarfiyatı %20 artır.\n\nMaliyet: 1. Kalite = 150 TL/m², 2. Kalite = 100 TL/m² (İşçilik dahil).\n\nOPERASYONEL İŞ AKIŞI VE ARAÇ KULLANIMI (Zincirleme Adımlar):\nİşlemlerini eksiksiz yapmak için lütfen şu adımları sırayla izle:\n\nSTOK KONTROLÜ: Her hesaplama talebinde ilk iş olarak stok_oku aracını çalıştır.\n\nOTOMATİK LİSTEYE EKLEME: Hesaplama sonucunda stok yetersiz çıkarsa, kullanıcıya nihai yanıtı vermeden önce eksik_listesine_yaz aracını tetikle.\n\n⚠️ İSTİSNA KURALI (ÇOK ÖNEMLİ): Eğer kullanıcı sadece \"fiyat nedir\", \"maliyeti hesapla\" gibi yalnızca teklif odaklı bir soru soruyorsa, stok eksik olsa dahi eksik_listesine_yaz aracını KESİNLİKLE çalıştırma. Veritabanını temiz tut ve sadece hesaplama sonucunu ver.\n\nSTOK DÜŞME: Kullanıcı \"boyayı kullandım\", \"iş bitti\" veya \"stoktan düş\" gibi net bir talimat verirse, sadece cevap vermekle yetinme, mutlaka stok_guncelle aracını tetikle.\n\nİletişim Kuralları ve Çıktı Formatı:\nYanıtlarını lütfen her zaman aşağıdaki net formatta sun:\n\nİhtiyaç: [Miktar] Litre [Renk] ([Kalite])\n\nStok Durumu: [Yeterli / Yetersiz - Eksik: X Litre]\n\nMaliyet: [Toplam TL]\n\nSistem İşlemi: [Araç gerçekten çalıştırıldıysa \"Eksik listesine eklendi\" veya \"Stoktan düşüldü\" yaz. Sadece fiyat sorulduysa veya işlem gerekmediyse \"İşlem gerekmedi\" yaz.]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "64942321-8e22-4e92-b49a-ac01717e0f0b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "3b92810e-afbf-47d0-87e1-1f999d51826d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iSm3rhuuIpDQ8QfQ",
+          "name": "gemini for boyaci1deneme"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1zVcaHkU_JEapFJdJUBpm8pOxrjCO9jHb8Ea-BkI_lI8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Stok_Durumu"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        256
+      ],
+      "id": "7f016d89-55a8-46bc-8ec5-20bd61fc4f2c",
+      "name": "stok_oku",
+      "credentials": {
+        "googleApi": {
+          "id": "pFNcuuzgySDxIAOb",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Kullanıcı bir metrekare, oda sayısı girdiğinde VEYA doğrudan stok durumunu sorduğunda İLK İŞ OLARAK BU ARACI TETİKLE. Görevin: 'Stok_Durumu' sayfasındaki güncel boya renklerini ve miktarlarını okuyup hafızaya almaktır. Bu aracı çalıştırıp güncel veriyi görmeden ASLA hesaplama yapma"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1zVcaHkU_JEapFJdJUBpm8pOxrjCO9jHb8Ea-BkI_lI8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Stok_Durumu"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "Malzeme": ""
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Malzeme",
+              "displayName": "Malzeme",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Renk",
+              "displayName": "Renk",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Kalite",
+              "displayName": "Kalite",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Miktar (Litre)",
+              "displayName": "Miktar (Litre)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Birim",
+              "displayName": "Birim",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Son Güncelleme",
+              "displayName": "Son Güncelleme",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        224
+      ],
+      "id": "b7713eae-6ecb-4129-9dd9-29adc53c2001",
+      "name": "stok_guncelle",
+      "credentials": {
+        "googleApi": {
+          "id": "pFNcuuzgySDxIAOb",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Kullanıcı 'boyayı kullandım', 'stoktan düş', 'iş bitti' gibi ifadeler kullandığında veya bir boyama işleminin tamamlandığını bildirdiğinde BU ARACI TETİKLE. Görevin: 'Stok_Durumu' sayfasındaki ilgili boya rengine ait satırı bulup, mevcut miktarı kullanılan miktar kadar azaltarak güncellemektir. Bu aracı çalıştırmadan kullanıcıya 'güncelledim' deme"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1zVcaHkU_JEapFJdJUBpm8pOxrjCO9jHb8Ea-BkI_lI8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Alinacaklar_Listesi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Tarih": "={{ $now.format('dd.MM.yyyy') }}",
+            "Proje/Oda": "Kullanıcının mesajında geçen oda sayısı veya proje ölçüsü (Örn: 3+1 veya 120m2)",
+            "Renk": "Kullanıcının istediği boya rengi",
+            "Kalite": "Boya kalitesi (1. Kalite veya 2. Kalite)",
+            "Tahmini Maliyet": "Hesaplanan toplam fiyat (sadece rakam yaz, TL ekleme)"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "Tarih",
+              "displayName": "Tarih",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Proje/Oda",
+              "displayName": "Proje/Oda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Renk",
+              "displayName": "Renk",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Kalite",
+              "displayName": "Kalite",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tahmini Maliyet",
+              "displayName": "Tahmini Maliyet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        208
+      ],
+      "id": "daa01ac4-40e3-4bb8-b771-2859f32112d1",
+      "name": "eksik_listesine_yaz",
+      "credentials": {
+        "googleApi": {
+          "id": "pFNcuuzgySDxIAOb",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "HESAPLAMA ZORUNLULUĞU: Stok kontrolü yapıldıktan sonra miktar yetersiz çıkarsa, KULLANICIYA SORMADAN bu aracı çalıştır. Görevin: Hesaplanan eksik miktar, renk ve maliyet bilgilerini 'Alinacaklar_Listesi' sayfasına yeni bir satır olarak eklemektir. Eğer kullanıcı sadece fiyat sorduysa bu aracı çalıştırma. Bu aracı tetiklemeden kullanıcıya 'ekledim' deme."
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        656,
+        0
+      ],
+      "id": "8aa85255-7098-4d4c-8b2e-3fdfd43ba3b5",
+      "name": "Send a text message",
+      "webhookId": "5a1152f1-9e57-41f4-9b44-aa6f4e4bfeab",
+      "credentials": {
+        "telegramApi": {
+          "id": "tkEsiVs8QWqb0EU9",
+          "name": "boyaci1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "7fb13c9b-6ff3-43f8-a694-65244c029a4c",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stok_oku": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stok_guncelle": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "eksik_listesine_yaz": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7f6b8632-32c8-4af6-b55a-f9c24b3c9f5d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9c284a2e51e54078a314bf74857aa2a017dcdb763f25ddb71d982573333614df"
+  },
+  "id": "hUfBI5rI39Uop36x",
+  "tags": []
+}
